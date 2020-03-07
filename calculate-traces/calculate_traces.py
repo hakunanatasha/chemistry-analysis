@@ -41,10 +41,38 @@ class EnzymeTrajectories:
 
         self.pdbdir = pdbdir
         self.tpsdir = tpsdir
-        self.tpswin = tpswin
+        self.tpswin = "ws" + str(tpswin[0]) + "_we" + str(tpswin[1])
         self.sdir = sdir
 
         self.pdb = self.read_pdb(pdbdir)
+
+    def get_tpstrajs(self):
+        """
+        Slices trajectories based on TPS directories
+        """
+        tpsdirs = glob.glob(self.tpsdir + "*")
+        self.tps_files = [t for t in tpsdirs if self.tpswin in t]
+
+    def get_accepted_trajs(self):
+        """
+        Of the DCD files, Identify the accepted ensemble.
+        Of the accepted ensemble, get the line after that tells me 
+        how I constructed the new trajectory.
+        """
+        trajs = {}
+        for replicate in self.tps_files:
+
+            with open(self.tpsdir + replicate + "/trajsum.txt", "r") as f:
+                x = f.readlines()
+            
+            key = int(replicate.split("r")[1][0])
+            value = list(filter(lambda y: "accepted 1" in y[0], [x[i:i+2] for i in range(0, len(x), 3)]))
+            
+            # This is a bit crazy, but split on string to find the move that was accepted
+            value = [int(v.split(';')[0].split()[-1]) for v in value]
+            trajs.update({key: value})
+        
+        self.trajs = trajs
 
     @staticmethod
     def readpdb(fname):
@@ -90,3 +118,7 @@ class EnzymeTrajectories:
         dcdfor = np.array(DCDReader(dcdfor))
         dcdrev = np.array(DCDReader(dcdrev))
         return dcdfor, dcdrev
+
+
+
+if __name__ == "__main__":
