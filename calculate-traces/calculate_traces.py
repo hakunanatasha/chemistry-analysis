@@ -14,6 +14,7 @@ from MDAnalysis.coordinates.DCD import DCDReader
 from numpy.linalg import norm
 import os
 import sys
+import re
 
 pdbdir="/data/nseelam04/pros_nowat_3ltp/v155d/template/equitrim.pdb"
 cols = ["Atom Index", "Atom Type", "Res Name", "Chain", "Res ID", "X", "Y", "Z", "B", "Charge"]
@@ -24,6 +25,13 @@ chosen_atoms = [("OMP", 1, "C6"),
                 ("LYS", 72, "HZ2"), 
                 ("LYS", 72, "HZ3")]
 
+#OMP C6 - 135
+#OMP CX - 142
+#LYS NZ - 55
+#LYS HZ1 - 56
+#LYS HZ2 - 57
+#LYS HZ3 - 58
+isrev = {'-1': True, '0': False}
 
 class EnzymeTrajectories:
     """
@@ -31,7 +39,7 @@ class EnzymeTrajectories:
     of an enzyme, and draw out traces for storage
     """
 
-    def __init__(self, pdbdir, tpsdir, tpswin, sdir):
+    def __init__(self, pdbdir, tpsdir, tpswin, sdir, Nframes=651):
         """
         pdbdir - location of the PDB
         tpsdir - location of the TPS trajectories
@@ -43,6 +51,7 @@ class EnzymeTrajectories:
         self.tpsdir = tpsdir
         self.tpswin = "ws" + str(tpswin[0]) + "_we" + str(tpswin[1])
         self.sdir = sdir
+        self.Nframes = Nframes
 
         self.pdb = self.read_pdb(pdbdir)
 
@@ -66,13 +75,34 @@ class EnzymeTrajectories:
                 x = f.readlines()
             
             key = int(replicate.split("r")[1][0])
-            value = list(filter(lambda y: "accepted 1" in y[0], [x[i:i+2] for i in range(0, len(x), 3)]))
+            value = list(filter(lambda y: "accepted 1" in y[0], [x[i:(i+2)] for i in range(0, len(x), 3)]))
             
             # This is a bit crazy, but split on string to find the move that was accepted
-            value = [int(v.split(';')[0].split()[-1]) for v in value]
-            trajs.update({key: value})
-        
+            accepts = [int(v[0].split(';')[0].split()[-1]) for v in value]
+            traj_recompose = [re.split(',', v[1][2:].split("#")[0].replace(" ", "").replace(';',',')) for v in value]
+            traj_recompose = list(map(lambda x: x[:-1], traj_recompose))
+            trajs.update({key: (accepts, traj_recompose)})
+
         self.trajs = trajs
+
+    def recompose_traj(self, replicate):
+        """
+        Given a trajectory, extract the frames of interest.
+        """
+        frames 
+        for fr in range(0, len(traj), 4):
+            tset = traj[(fr):(fr+4)]
+            formed_start, formed_end = [int(i) for i in tset[0].split(':')]
+            calc_start, calc_end = [int(i) for i in tset[1].split(':')]
+            irev = isrev[tset[2]]
+            trajname = tset[3]
+
+            if formed_start > formed_end:
+                formed_start, formed_end = formed_end, formed_start
+
+            if calc_start > calc_end:
+                calc_start, calc_end = calc_end, calc_start
+
 
     @staticmethod
     def readpdb(fname):
@@ -108,16 +138,20 @@ class EnzymeTrajectories:
         return norm(atom1 - atom2, axis=axis)
 
     @staticmethod
-    def get_trace(dcdfor, dcdrev, isrev=False):
+    def get_trace(dcdfile, frame_start, frame_end, isrev):
         """
         Given a DCD, read all atoms and
         slice out the trace of interest.
 
         Requires the stitch forward + backward.
         """
-        dcdfor = np.array(DCDReader(dcdfor))
-        dcdrev = np.array(DCDReader(dcdrev))
-        return dcdfor, dcdrev
+        dcd = np.array(DCDReader(dcdfile))
+        if isrev:
+            dcd = dcd[::-1, :, :]
+
+        start_pos = len(dcd) - frame_end - 1 + frame_start
+        end_pos = start_pos + frame_end
+        return dcd[start_pos:end_pos, :, :]
 
 
 
