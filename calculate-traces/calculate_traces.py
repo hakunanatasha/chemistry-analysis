@@ -6,6 +6,9 @@ The following will identify, for a system + slice of trace
 for the desired atoms.
 
 NSNOTE: pydcd environment has MDAnalysis
+
+TODO
+2020.03.09: find_chosenatoms PDB columns can be a mapped iterable
 """
 
 import numpy as np
@@ -39,7 +42,13 @@ class EnzymeTrajectories:
     of an enzyme, and draw out traces for storage
     """
 
-    def __init__(self, pdbdir, tpsdir, tpswin, sdir, Nframes=651):
+    def __init__(self, 
+                 pdbdir, 
+                 tpsdir, 
+                 tpswin, 
+                 sdir, 
+                 chosen_atoms,
+                 Nframes=651):
         """
         pdbdir - location of the PDB
         tpsdir - location of the TPS trajectories
@@ -51,9 +60,20 @@ class EnzymeTrajectories:
         self.tpsdir = tpsdir
         self.tpswin = "ws" + str(tpswin[0]) + "_we" + str(tpswin[1])
         self.sdir = sdir
+        self.chosen_atoms = chosen_atoms
         self.Nframes = Nframes
 
         self.pdb = self.read_pdb(pdbdir)
+
+    def find_chosenatoms(self, cols=["Res Name", "Res ID", "Atom Type"]):
+        """Given a list of chosen atoms, identify the location in PDB """
+        self.atom_list = {}
+        for atom in self.chosen_atoms:
+            key = "-".join([str(i) for i in atom])
+            value = self.pdb[(self.pdb[cols[0]] == atom[0]) & 
+                     (self.pdb[cols[1]] == atom[1]) &
+                     (self.pdb[cols[2]] == atom[2])].index[0]
+            self.atom_list.update({key: value})
 
     def get_tpstrajs(self):
         """
