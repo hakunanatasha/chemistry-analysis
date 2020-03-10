@@ -14,12 +14,17 @@ import re
 Nframes = 651
 pdbdir="/data/nseelam04/pros_nowat_3ltp/v155d/template/equitrim.pdb"
 cols = ["Atom Index", "Atom Type", "Res Name", "Chain", "Res ID", "X", "Y", "Z", "B", "Charge"]
+tpsdir = "/data/nseelam04/pros_nowat_3ltp/v155d/tpsseed1_c2.3_c-1.4_fr51/tps_getp/set_r1_"
+tpswin = [3.1, 3.2]
+sdir = "/usr/people/nseelam/labnotes/scripts/paperrepos/"
 chosen_atoms = [("OMP", 1, "C6"), 
                 ("OMP", 1, "CX"), 
                 ("LYS", 72, "NZ"), 
                 ("LYS", 72, "HZ1"), 
                 ("LYS", 72, "HZ2"), 
                 ("LYS", 72, "HZ3")]
+
+model = EnzymeTrajectories(pdbdir, tpsdir, tpswin, sdir, chosen_atoms, Nframes)
 
 isrev = {'-1': True, '0': False}
 

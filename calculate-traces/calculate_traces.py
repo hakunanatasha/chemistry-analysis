@@ -63,17 +63,8 @@ class EnzymeTrajectories:
         self.chosen_atoms = chosen_atoms
         self.Nframes = Nframes
 
-        self.pdb = self.read_pdb(pdbdir)
-
-    def find_chosenatoms(self, cols=["Res Name", "Res ID", "Atom Type"]):
-        """Given a list of chosen atoms, identify the location in PDB """
-        self.atom_list = {}
-        for atom in self.chosen_atoms:
-            key = "-".join([str(i) for i in atom])
-            value = self.pdb[(self.pdb[cols[0]] == atom[0]) & 
-                     (self.pdb[cols[1]] == atom[1]) &
-                     (self.pdb[cols[2]] == atom[2])].index[0]
-            self.atom_list.update({key: value})
+        self.pdb = self.readpdb(pdbdir)
+        self.atom_index = self.find_chosenatoms(self.pdb, self.chosen_atoms)
 
     def get_tpstrajs(self):
         """
@@ -105,11 +96,11 @@ class EnzymeTrajectories:
 
         self.trajs = trajs
 
-    def recompose_traj(self, trajectory):
+    def recompose_traj(self, trajectory, atom_pairs):
         """
         Given a trajectory, extract the frames of interest.
         """
-        geometries = np.zeros(shape = (self.Nframes, len(self.distances)))
+        geometries = np.zeros(shape = (self.Nframes, len(atom_pairs)))
         for frame in range(0, len(trajectory), 4):
             tset = traj[(frame):(frame+4)]
 
@@ -133,7 +124,7 @@ class EnzymeTrajectories:
                 dcd = get_trace(trajname, calc_start, calc_end, irev)
                 
                 fxn = lambda x: get_dist(dcd[:, x[0], :],dcd[:, x[1], :])
-                r = np.array(list(map(fxn, rdists)))
+                r = np.array(list(map(fxn, atom_pairs)))
 
                 if irev:
                     cstart = r.shape[1] - (calc_end+1)
@@ -160,16 +151,16 @@ class EnzymeTrajectories:
         return pdb
 
     @staticmethod
-    def sliceatoms(pdb, chosenatoms):
+    def find_chosenatoms(pdb, chosenatoms, cols=["Res Name", "Res ID", "Atom Type"]):
         """
         Given certain canonical atoms you're looking into,
         return the position in the PDB that they come from.
         """
         aidx = []
         for atom in chosen_atoms:
-            aidx.append(pdb[(pdb["Res Name"] == atom[0]) &
-                       (pdb["Res ID"] == atom[1]) &
-                       (pdb["Atom Type"] == atom[2])].index[0])
+            aidx.append(pdb[(pdb[col[0]] == atom[0]) &
+                            (pdb[col[1]] == atom[1]) &
+                            (pdb[col[2]] == atom[2])].index[0])
         return aidx
 
     @staticmethod
@@ -193,4 +184,4 @@ class EnzymeTrajectories:
 
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
