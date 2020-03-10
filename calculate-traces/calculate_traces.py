@@ -105,17 +105,22 @@ class EnzymeTrajectories:
 
         self.trajs = trajs
 
-    def recompose_traj(self, replicate):
+    def recompose_traj(self, trajectory):
         """
         Given a trajectory, extract the frames of interest.
         """
-        frames 
-        for fr in range(0, len(traj), 4):
-            tset = traj[(fr):(fr+4)]
+        geometries = np.zeros(shape = (self.Nframes, len(self.distances)))
+        for frame in range(0, len(trajectory), 4):
+            tset = traj[(frame):(frame+4)]
+
+            # Collect the start/stop of traj to build + traj existing
             formed_start, formed_end = [int(i) for i in tset[0].split(':')]
             calc_start, calc_end = [int(i) for i in tset[1].split(':')]
             irev = isrev[tset[2]]
             trajname = tset[3]
+
+            if "prod" in trajname:
+                trajname = "dcd/" + trajname + "_trim.dcd"
 
             if formed_start > formed_end:
                 formed_start, formed_end = formed_end, formed_start
@@ -123,6 +128,21 @@ class EnzymeTrajectories:
             if calc_start > calc_end:
                 calc_start, calc_end = calc_end, calc_start
 
+            if os.path.exists(trajname):
+                
+                dcd = get_trace(trajname, calc_start, calc_end, irev)
+                
+                fxn = lambda x: get_dist(dcd[:, x[0], :],dcd[:, x[1], :])
+                r = np.array(list(map(fxn, rdists)))
+
+                if irev:
+                    cstart = r.shape[1] - (calc_end+1)
+                    cend   = cstart + (calc_end+1-calc_start)
+                    geometries[formed_start-1:formed_end, :] = r[:, cstart:cend].T
+                else:
+                    geometries[formed_start-1:formed_end, :] = r[:, calc_start:(calc_end+1)].T
+
+        return frames
 
     @staticmethod
     def readpdb(fname):
@@ -158,7 +178,7 @@ class EnzymeTrajectories:
         return norm(atom1 - atom2, axis=axis)
 
     @staticmethod
-    def get_trace(dcdfile, frame_start, frame_end, isrev):
+    def get_trace(dcdfile, isrev):
         """
         Given a DCD, read all atoms and
         slice out the trace of interest.
@@ -169,9 +189,7 @@ class EnzymeTrajectories:
         if isrev:
             dcd = dcd[::-1, :, :]
 
-        start_pos = len(dcd) - frame_end - 1 + frame_start
-        end_pos = start_pos + frame_end
-        return dcd[start_pos:end_pos, :, :]
+        return dcd
 
 
 

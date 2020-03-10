@@ -10,6 +10,8 @@ import os
 import sys
 import re
 
+
+Nframes = 651
 pdbdir="/data/nseelam04/pros_nowat_3ltp/v155d/template/equitrim.pdb"
 cols = ["Atom Index", "Atom Type", "Res Name", "Chain", "Res ID", "X", "Y", "Z", "B", "Charge"]
 chosen_atoms = [("OMP", 1, "C6"), 
@@ -21,7 +23,7 @@ chosen_atoms = [("OMP", 1, "C6"),
 
 isrev = {'-1': True, '0': False}
 
-pdb = pd.read_csv(fname, 
+pdb = pd.read_csv(pdbdir, 
                   skipfooter=1, 
                   skiprows=1, 
                   header=None,
@@ -62,11 +64,8 @@ def get_trace(dcdfile, frame_start, frame_end, isrev):
     Requires the stitch forward + backward.
     """
     dcd = np.array(DCDReader(dcdfile))
-    #if isrev:
-    #    dcd = dcd[::-1, :, :]
-
-    start_pos = len(dcd) - frame_end + frame_start
-    end_pos = start_pos + frame_end
+    if isrev:
+        dcd = dcd[::-1]
     return dcd #dcd[start_pos:end_pos, :, :]
 
 
