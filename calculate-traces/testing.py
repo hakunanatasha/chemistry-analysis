@@ -14,7 +14,7 @@ import re
 Nframes = 651
 pdbdir="/data/nseelam04/pros_nowat_3ltp/v155d/template/equitrim.pdb"
 cols = ["Atom Index", "Atom Type", "Res Name", "Chain", "Res ID", "X", "Y", "Z", "B", "Charge"]
-tpsdir = "/data/nseelam04/pros_nowat_3ltp/v155d/tpsseed1_c2.3_c-1.4_fr51/tps_getp/set_r1_"
+tpsdir = "/data/nseelam04/pros_nowat_3ltp/v155d/tpsseed1_c2.3_c-1.4_fr51/tps_getp/"
 tpswin = [3.1, 3.2]
 sdir = "/usr/people/nseelam/labnotes/scripts/paperrepos/"
 chosen_atoms = [("OMP", 1, "C6"), 
@@ -25,6 +25,16 @@ chosen_atoms = [("OMP", 1, "C6"),
                 ("LYS", 72, "HZ3")]
 
 model = EnzymeTrajectories(pdbdir, tpsdir, tpswin, sdir, chosen_atoms, Nframes)
+model.get_tpstrajs()
+model.get_accepted_trajs()
+atom_pairs = [(135, 142), (55, 58), (55, 57), (55, 56), (135, 58), (135, 57), (135, 56)]
+t = model.recompose_traj(model.trajs[1][-1], atom_pairs)
+t2 = model.recompose_traj(model.trajs[1][-5], atom_pairs)
+
+import matplotlib.pyplot as plt
+plt.plot(t[:, 0]);plt.plot(t2[:, 0]); plt.show()
+
+
 
 isrev = {'-1': True, '0': False}
 

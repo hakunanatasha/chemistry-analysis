@@ -19,16 +19,7 @@ import glob
 import os
 import sys
 import re
-
-pdbdir="/data/nseelam04/pros_nowat_3ltp/v155d/template/equitrim.pdb"
-cols = ["Atom Index", "Atom Type", "Res Name", "Chain", "Res ID", "X", "Y", "Z", "B", "Charge"]
-chosen_atoms = [("OMP", 1, "C6"), 
-                ("OMP", 1, "CX"), 
-                ("LYS", 72, "NZ"), 
-                ("LYS", 72, "HZ1"), 
-                ("LYS", 72, "HZ2"), 
-                ("LYS", 72, "HZ3")]
-
+    
 #OMP C6 - 135
 #OMP CX - 142
 #LYS NZ - 55
@@ -36,6 +27,7 @@ chosen_atoms = [("OMP", 1, "C6"),
 #LYS HZ2 - 57
 #LYS HZ3 - 58
 isrev = {'-1': True, '0': False}
+#cols = ["Atom Index", "Atom Type", "Res Name", "Chain", "Res ID", "X", "Y", "Z", "B", "Charge"]
 
 class EnzymeTrajectories:
     """
@@ -49,6 +41,7 @@ class EnzymeTrajectories:
                  tpswin, 
                  sdir, 
                  chosen_atoms,
+                 cols,
                  Nframes=651):
         """
         pdbdir - location of the PDB
@@ -66,7 +59,7 @@ class EnzymeTrajectories:
 
         # Assign the PDB
         print("\n01. Get PBB:")
-        self.pdb = self.readpdb(pdbdir)
+        self.pdb = self.readpdb(pdbdir, cols)
 
         # Assign indices to necessary atoms
         print("\n02. Get Atom index:")
@@ -156,7 +149,7 @@ class EnzymeTrajectories:
             if calc_start > calc_end:
                 calc_start, calc_end = calc_end, calc_start
 
-            if os.path.exists(trajname):
+            if os.path.exists(trajname) and "/dcd/prod" in trajname:
                 
                 dcd = EnzymeTrajectories.read_dcd(trajname, irev)
                 
@@ -173,7 +166,7 @@ class EnzymeTrajectories:
         return geometries
 
     @staticmethod
-    def readpdb(fname):
+    def readpdb(fname, cols):
         """
         Read canonical PDB and identify the atom ordering.
         Constructstruct.py converts to pdb
@@ -195,7 +188,7 @@ class EnzymeTrajectories:
         return the position in the PDB that they come from.
         """
         aidx = []
-        for atom in chosen_atoms:
+        for atom in chosenatoms:
             aidx.append(pdb[(pdb[cols[0]] == atom[0]) &
                             (pdb[cols[1]] == atom[1]) &
                             (pdb[cols[2]] == atom[2])].index[0])
