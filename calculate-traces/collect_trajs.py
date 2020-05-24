@@ -55,19 +55,68 @@ for key in model.trajkeys:
         pkl.dump(traces, f)
 
 
+##OMP C6 - 135
+#OMP CX - 142
+#LYS NZ - 55
+#LYS HZ1 - 56
+#LYS HZ2 - 57
+#LYS HZ3 - 58
+
+# Dists
+#C6-CX
+#NZ-HZ1
+#NZ-HZ2
+#NZ-HZ3
+#C6-HZ1
+#C6-HZ2
+#C6-HZ3
+
+
 import gzip
 import pickle as pkl
 import numpy
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.io import savemat
+import numpy as np, h5py 
 
-with gzip.open('wt_r1ws3.45_we5.pkl.gzip', 'rb') as f:
-    traces = pkl.load(f)
+prot = "wt"
+ensmax = 5
+ldir = "/data/nseelam04/pros_nowat_3ltp/trace_data/" + prot 
+sdir1= "/usr/people/nseelam/labnotes/scripts/paperrepos/OMPDC_work/" + prot + "/"
+
+for r in range(1,ensmax+1):
+    print(prot, "Ensemble", r,)
+    with gzip.open(ldir + "/" + prot + '_r' + str(r) + 'ws3.45_we5.pkl.gzip', 'rb') as f:
+        traces = pkl.load(f)
+
+    RC1 = np.zeros(shape = (traces.shape[0], 651)) * np.nan
+    RC2 = np.zeros(shape = (traces.shape[0], 651)) * np.nan
+    for i in range(traces.shape[0]):
+        x = traces[i,:,0]
+        y1 = traces[i,:,1] - traces[i,:,4]
+        y2 = traces[i,:,2] - traces[i,:,5]
+        y3 = traces[i,:,3] - traces[i,:,6]
+        y = np.nanmax(np.vstack([y1, y2, y3]), axis=0)
+        RC1[i, :] = x
+        RC2[i, :] = y
+
+    savemat(sdir1 + prot + "_C6CX_" + str(r) + "_ws3.45_we5.mat", mdict={'C6CX':RC1})
+    savemat(sdir1 + prot + "_NZHC6_" + str(r) + "_ws3.45_we5.mat", mdict={'NZHC6':RC2})
+
+    #savemat(sdir1 + prot + "_" + str(r) + "_ws3.45_we5.mat", mdict={'traces':traces})
+    #plt.close('all')
+    #for i in range(traces.shape[0]):
+    #    x = traces[i,:,0]
+    #    y1 = traces[i,:,1] - traces[i,:,4]
+    #    y2 = traces[i,:,2] - traces[i,:,5]
+    #    y3 = traces[i,:,3] - traces[i,:,6]
+    #    y = np.nanmax(np.vstack([y1, y2, y3]), axis=0)
+    #    plt.plot(x,y, alpha=0.05)
+    #    plt.xticks(np.arange(1.5, 3.7, 0.2))
+    #    plt.yticks(np.arange(-3.6, 1.4, 0.2))
+    #    plt.xlim([1.49, 3.51])
+    #    plt.ylim([-3.6, 1.2])
+    #plt.savefig(sdir1 + "figures/" + prot + "_"+str(r) + ".png")
 
 
-for i in range(traces.shape[0]):
-    x = traces[i,:,0]
-    y = traces[i,:,1] - traces[i,:,4]
-    plt.plot(x,y, alpha=0.05)
-
-
-plt.show()
