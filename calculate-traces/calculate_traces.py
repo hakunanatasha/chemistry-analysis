@@ -1,4 +1,7 @@
 """
+2020 June 08
+Modifying the windows to match ensemble length
+ 
 2020 March 06
 
 Calculate the traces of the TPS trajectories.
@@ -42,12 +45,14 @@ class EnzymeTrajectories:
                  sdir, 
                  chosen_atoms,
                  cols,
-                 Nframes=651):
+                 Nframes=651,
+		         ensembles=None):
         """
         pdbdir - location of the PDB
         tpsdir - location of the TPS trajectories
         tpswin - window length to extract
         sdir   - Location to save the trace files
+        ensembles - number of MCs to consider
         """
 
         self.pdbdir = pdbdir
@@ -68,7 +73,12 @@ class EnzymeTrajectories:
         # Assign the tps-files of interest.
         print("\n03. Get TPS directories:")
         self.get_tpstrajs()
-        print("\n04. Get accepted Trajectories:")
+	
+        if ensembles is not None:
+            substrings = ['_r' + str(j) + '_' for j in range(1, ensembles + 1)]
+            self.tps_files = [t for t in self.tps_files if any(x in t for x in substrings)]
+	
+        print("\n04. Get accepted Trajectories:") 
         self.get_accepted_trajs()
 
     def get_tpstrajs(self):
