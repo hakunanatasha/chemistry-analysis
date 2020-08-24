@@ -17,5 +17,4 @@ The following script is fairly specific to the workflow that I have in lab, but 
 
 For the specific calculation I performed, I wanted to be able to include R-group side chains in my data. To do so, I had to proton-cap the R-groups. To do this, I took the CB (beta-carbon), and converted the CA (alpha-carbon) into an "H" type. Then, I translated the alpha-carbon closer to the beta carbon to account for the equilibrium bond length between CB-H versus CB-CA.
 
-## calculate-traces
-For the TPS module, calculates canonical distances of interest
+To get an example of how the scripts are used, see make-qchem/KARI_analysis.html
