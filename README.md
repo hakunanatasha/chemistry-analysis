@@ -1,8 +1,6 @@
 # chemistry-analysis
 
-The following contains a handful of helpful scripts I developed to process my QM/MM atomistic simulations.
-
-This is a work in progress!
+The following contains scripts I developed to process my QM/MM atomistic simulations. Leveraging these calculations allowed me to construct the datapool of electronic features to explore the KARI enzyme mechanism. Over 600K calculations were performed to identify the electonic-level mechanism of KARI.
 
 ## make-qchem
 Makes Q-Chem files from CHARMM dcd trajectories
